@@ -31,6 +31,7 @@ services:
       - internal
     working_dir: /var/www/
     container_name: php
+    command:  bash -c "bin/console app:sell-product C '10 2 20 1 50 50 10 2 1 10 20 50  50 5 5' && php-fpm"
 
 
   mysql:
