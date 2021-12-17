@@ -1,0 +1,60 @@
+version: "3"
+
+services:
+  nginx:
+    image: nginx:latest
+    ports:
+      - "8080:80"
+      - "8081:443"
+
+    links:
+      - php
+    volumes:
+      - ./nginx/hosts:/etc/nginx/conf.d
+      - ./../application:/var/www
+      - ./logs/nginx:/var/log/nginx
+    networks:
+      - internal
+    container_name: nginx
+
+  php:
+    build: ./php
+    links:
+      - mysql
+    volumes:
+      - ./../application:/var/www
+      - ./logs/php:/var/log/php
+
+    environment:
+      PHP_IDE_CONFIG: "serverName=Docker"
+    networks:
+      - internal
+    working_dir: /var/www/
+    container_name: php
+
+
+  mysql:
+    image: mysql:8
+    ports:
+      - "8082:3306"
+    volumes:
+      - ./db:/var/lib/mysql
+      - ./logs/mysql:/var/log/mysql
+      - ./mysql/mysql.cnf:/etc/mysql/mysql.conf.d/custom.cnf
+    environment:
+      MYSQL_USER: root
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_PORT: 8082
+    networks:
+      - internal
+    container_name: db
+    entrypoint: ""
+    command: bash -c "chown -R mysql:mysql /var/log/mysql && exec /entrypoint.sh mysqld"
+
+networks:
+  internal:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.220.0/28
